@@ -163,11 +163,11 @@ typedef struct {
     int16_t dig_P7;
     int16_t dig_P8;
     int16_t dig_P9;
-    int32_t t_fine;    // global value used for compensation
-    int32_t adc_P;     // raw Pressure value
-    int32_t adc_T;     // raw Temperature value
-    uint8_t buf_r[6];  // 48 bit buffer to hold temperature and pressure data
-    uint8_t buf_w[2];
+    int32_t t_fine;     // global value used for compensation
+    int32_t adc_P;      // raw Pressure value
+    int32_t adc_T;      // raw Temperature value
+    uint8_t buf_rx[6];  // 48 bit buffer to hold temperature and pressure data
+    uint8_t buf_tx[2];
     uint8_t ctrl_meas;  // representing ctrl_meas register
     uint8_t config;     // representing config register
 
@@ -178,18 +178,20 @@ typedef struct {
 
 // initializes sensor in default mode, and reads the compensation parameters.
 // returns false if init failed.
-bool bmp280_init(BMP280 *bmp, i2c_port_t i2c_num);
-void bmp280_config(BMP280 *bmp, BMP280_OVRSMP_TEMP osrs_t, BMP280_OVRSMP_PRES osrs_p, BMP280_MODE mode, BMP280_FILTER filter, BMP280_STANDBY t_sb);
+bool bmp280_init(BMP280 *dev, i2c_port_t i2c_num);
+void bmp280_config(BMP280 *dev, BMP280_OVRSMP_TEMP osrs_t, BMP280_OVRSMP_PRES osrs_p, BMP280_MODE mode, BMP280_FILTER filter, BMP280_STANDBY t_sb);
 
-void bmp280_read_comp(BMP280 *bmp);
-void bmp280_read_data(BMP280 *bmp);
+esp_err_t bmp280_read_data(BMP280 *dev);
+void bmp280_read_comp(BMP280 *dev);
 
-int32_t bmp280_compensate_T(BMP280 *bmp);
-uint32_t bmp280_compensate_P(BMP280 *bmp);
+int32_t bmp280_compensate_T(BMP280 *dev);
+uint32_t bmp280_compensate_P(BMP280 *dev);
 
 // low level
-uint8_t bmp280_read8(BMP280 *bmp, uint8_t addr);
-uint16_t bmp280_read16(BMP280 *bmp, uint8_t addr);
-void bmp280_write8(BMP280 *bmp, uint8_t addr, uint8_t data);
+uint8_t bmp280_read8(BMP280 *dev, uint8_t addr);
+uint16_t bmp280_read16(BMP280 *dev, uint8_t addr);
+esp_err_t bmp280_write8(BMP280 *dev, uint8_t addr, uint8_t data);
+
+esp_err_t bmp280_readbuf(BMP280 *dev, uint8_t addr, size_t n);
 
 #endif
