@@ -17,12 +17,10 @@
 #include "freertos/task.h"
 #include "sdkconfig.h"
 
-// SCL IO19, SDA IO18
-#define SCL_GPIO 19
-#define SDA_GPIO 18
-#define LED_GPIO 3
+#define SCL_GPIO 7
+#define SDA_GPIO 6
 
-static const char* TAG = "Hello";
+static const char* TAG = "BMP280";
 
 BMP280 bmp;
 static uint8_t s_led_state = 0;
@@ -41,8 +39,6 @@ void app_main(void) {
     i2c_param_config(i2c_num, &conf);
     i2c_driver_install(i2c_num, I2C_MODE_MASTER, 0, 0, 0);
 
-    gpio_reset_pin(LED_GPIO);
-    gpio_set_direction(LED_GPIO, GPIO_MODE_OUTPUT);
 
     if (bmp280_init(&bmp, i2c_num))
         ESP_LOGI(TAG, "BMP280 Init SUCCESS!\n");
@@ -50,8 +46,6 @@ void app_main(void) {
         ESP_LOGE(TAG, "BMP280 Init ERR!!!\n");
 
     while (1) {
-        gpio_set_level(LED_GPIO, s_led_state);
-        s_led_state = !s_led_state;
 
         bmp280_read_data(&bmp);
         ESP_LOGI(TAG, "%.02f C | %.02f ATM\n", bmp.temperature, bmp.pressure * BMP280_CONV_PA_ATM);

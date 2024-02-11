@@ -9,9 +9,9 @@
     },
     "idf.espIdfPathWin": "C:\\Users\\mirac\\esp\\esp-idf",
     "idf.openOcdConfigs": [
-        "board/esp32c3-bridge.cfg"
+        "board/esp32c3-builtin.cfg"
     ],
-    "idf.portWin": "COM28",
+    "idf.portWin": "COM20",
     "idf.pythonBinPathWin": "C:\\Espressif\\python_env\\idf5.1_py3.11_env\\Scripts\\python.exe",
     "idf.toolsPathWin": "C:\\Espressif",
     "files.associations": {
