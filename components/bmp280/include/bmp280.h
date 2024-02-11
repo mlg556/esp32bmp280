@@ -148,50 +148,50 @@ typedef enum {
 } BMP280_FILTER;
 
 // sensor struct
-typedef struct {
+struct BMP280 {
+    // i2c port number
     i2c_port_t i2c_port;
-    // compensation parameters
-    uint16_t dig_T1;
-    int16_t dig_T2;
-    int16_t dig_T3;
-    uint16_t dig_P1;
-    int16_t dig_P2;
-    int16_t dig_P3;
-    int16_t dig_P4;
-    int16_t dig_P5;
-    int16_t dig_P6;
-    int16_t dig_P7;
-    int16_t dig_P8;
-    int16_t dig_P9;
-    int32_t t_fine;     // global value used for compensation
-    // int32_t adc_P;      // raw Pressure value
-    // int32_t adc_T;      // raw Temperature value
-    // uint8_t buf_rx[6];  // 48 bit buffer to hold temperature and pressure data
-    // uint8_t buf_tx[2];
-    // uint8_t ctrl_meas;  // representing ctrl_meas register
-    // uint8_t config;     // representing config register
 
+    // another struct to hold compensation parameters
+    struct BMP280_COMP {
+        uint16_t dig_T1;
+        int16_t dig_T2;
+        int16_t dig_T3;
+        uint16_t dig_P1;
+        int16_t dig_P2;
+        int16_t dig_P3;
+        int16_t dig_P4;
+        int16_t dig_P5;
+        int16_t dig_P6;
+        int16_t dig_P7;
+        int16_t dig_P8;
+        int16_t dig_P9;
+    } comp;
+
+    // global value used for pressure compensation
+    int32_t t_fine;
+
+    // to hold the final results of temperature and pressure
     float temperature;
     float pressure;
-
-} BMP280;
+};
 
 // initializes sensor in default mode, and reads the compensation parameters.
 // returns false if init failed.
-bool bmp280_init(BMP280 *dev, i2c_port_t i2c_port);
-void bmp280_config(BMP280 *dev, BMP280_OVRSMP_TEMP osrs_t, BMP280_OVRSMP_PRES osrs_p, BMP280_MODE mode, BMP280_FILTER filter, BMP280_STANDBY t_sb);
+bool bmp280_init(struct BMP280 *dev, i2c_port_t i2c_port);
+void bmp280_config(struct BMP280 *dev, BMP280_OVRSMP_TEMP osrs_t, BMP280_OVRSMP_PRES osrs_p, BMP280_MODE mode, BMP280_FILTER filter, BMP280_STANDBY t_sb);
 
-esp_err_t bmp280_read_data(BMP280 *dev);
-void bmp280_read_comp(BMP280 *dev);
+esp_err_t bmp280_read_data(struct BMP280 *dev);
+void bmp280_read_comp(struct BMP280 *dev);
 
-int32_t bmp280_compensate_T(BMP280 *dev, int32_t adc_T);
-uint32_t bmp280_compensate_P(BMP280 *dev, int32_t adc_P);
+int32_t bmp280_compensate_T(struct BMP280 *dev, int32_t adc_T);
+uint32_t bmp280_compensate_P(struct BMP280 *dev, int32_t adc_P);
 
 // low level
-uint8_t bmp280_read8(BMP280 *dev, uint8_t addr);
-uint16_t bmp280_read16(BMP280 *dev, uint8_t addr);
-esp_err_t bmp280_write8(BMP280 *dev, uint8_t addr, uint8_t data);
+uint8_t bmp280_read8(struct BMP280 *dev, uint8_t addr);
+uint16_t bmp280_read16(struct BMP280 *dev, uint8_t addr);
+esp_err_t bmp280_write8(struct BMP280 *dev, uint8_t addr, uint8_t data);
 
-esp_err_t bmp280_readbuf(BMP280 *dev, uint8_t addr, uint8_t* buf, size_t n);
+esp_err_t bmp280_readbuf(struct BMP280 *dev, uint8_t addr, uint8_t *buf, size_t n);
 
 #endif

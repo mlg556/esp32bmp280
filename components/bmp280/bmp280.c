@@ -3,9 +3,9 @@
 
 static const char *TAG = "BMP280 Driver";
 
-bool bmp280_init(BMP280 *dev, i2c_port_t i2c_port) {
+bool bmp280_init(struct BMP280 *dev, i2c_port_t i2c_port) {
     dev->i2c_port = i2c_port;
-    dev->t_fine  = 0;
+    dev->t_fine   = 0;
 
     uint8_t chipID;
 
@@ -28,12 +28,12 @@ bool bmp280_init(BMP280 *dev, i2c_port_t i2c_port) {
     return true;
 }
 
-// read n bytes from addr into buffer, return esp_err_t. 
-esp_err_t bmp280_readbuf(BMP280 *dev, const uint8_t addr, uint8_t* buf, size_t n) {
+// read n bytes from addr into buffer, return esp_err_t.
+esp_err_t bmp280_readbuf(struct BMP280 *dev, const uint8_t addr, uint8_t *buf, size_t n) {
     return i2c_master_write_read_device(dev->i2c_port, BMP280_ADDRESS, &addr, 1, buf, n, BMP280_TIMEOUT);  // timeout is 2 ticks
 }
 
-uint8_t bmp280_read8(BMP280 *dev, const uint8_t addr) {
+uint8_t bmp280_read8(struct BMP280 *dev, const uint8_t addr) {
     uint8_t buf[1];
 
     // if read error, return 0
@@ -44,18 +44,18 @@ uint8_t bmp280_read8(BMP280 *dev, const uint8_t addr) {
     return buf[0];
 }
 
-uint16_t bmp280_read16(BMP280 *dev, uint8_t addr) {
+uint16_t bmp280_read16(struct BMP280 *dev, uint8_t addr) {
     uint8_t buf[2];
 
     if (bmp280_readbuf(dev, addr, buf, 2) != ESP_OK)
         return 0;
-    
+
     // combine buf[0] and buf[1] in to an unsigned 16bit
     return (uint16_t)((buf[1] << 8) | buf[0]);
 }
 
 // write a byte to given address
-esp_err_t bmp280_write8(BMP280 *dev, uint8_t addr, uint8_t data) {
+esp_err_t bmp280_write8(struct BMP280 *dev, uint8_t addr, uint8_t data) {
     // buffer contains address and data, send 2 bytes
     uint8_t buf[2] = {addr, data};
 
@@ -63,7 +63,7 @@ esp_err_t bmp280_write8(BMP280 *dev, uint8_t addr, uint8_t data) {
     return i2c_master_write_to_device(dev->i2c_port, BMP280_ADDRESS, buf, 2, BMP280_TIMEOUT);
 }
 
-void bmp280_config(BMP280 *dev, BMP280_OVRSMP_TEMP osrs_t, BMP280_OVRSMP_PRES osrs_p, BMP280_MODE mode, BMP280_FILTER filter, BMP280_STANDBY t_sb) {
+void bmp280_config(struct BMP280 *dev, BMP280_OVRSMP_TEMP osrs_t, BMP280_OVRSMP_PRES osrs_p, BMP280_MODE mode, BMP280_FILTER filter, BMP280_STANDBY t_sb) {
     uint8_t reg_ctrl_meas = osrs_t | osrs_p | mode;
     uint8_t reg_config    = filter | t_sb;
 
@@ -74,27 +74,26 @@ void bmp280_config(BMP280 *dev, BMP280_OVRSMP_TEMP osrs_t, BMP280_OVRSMP_PRES os
 }
 
 // read the compensation parameters
-void bmp280_read_comp(BMP280 *dev) {
-    dev->dig_T1 = bmp280_read16(dev, BMP280_REG_DIG_T1);
-    dev->dig_T2 = bmp280_read16(dev, BMP280_REG_DIG_T2);
-    dev->dig_T3 = bmp280_read16(dev, BMP280_REG_DIG_T3);
-    dev->dig_P1 = bmp280_read16(dev, BMP280_REG_DIG_P1);
-    dev->dig_P2 = (int16_t)bmp280_read16(dev, BMP280_REG_DIG_P2);
-    dev->dig_P3 = (int16_t)bmp280_read16(dev, BMP280_REG_DIG_P3);
-    dev->dig_P4 = (int16_t)bmp280_read16(dev, BMP280_REG_DIG_P4);
-    dev->dig_P5 = (int16_t)bmp280_read16(dev, BMP280_REG_DIG_P5);
-    dev->dig_P6 = (int16_t)bmp280_read16(dev, BMP280_REG_DIG_P6);
-    dev->dig_P7 = (int16_t)bmp280_read16(dev, BMP280_REG_DIG_P7);
-    dev->dig_P8 = (int16_t)bmp280_read16(dev, BMP280_REG_DIG_P8);
-    dev->dig_P9 = (int16_t)bmp280_read16(dev, BMP280_REG_DIG_P9);
+void bmp280_read_comp(struct BMP280 *dev) {
+    dev->comp.dig_T1 = bmp280_read16(dev, BMP280_REG_DIG_T1);
+    dev->comp.dig_T2 = bmp280_read16(dev, BMP280_REG_DIG_T2);
+    dev->comp.dig_T3 = bmp280_read16(dev, BMP280_REG_DIG_T3);
+    dev->comp.dig_P1 = bmp280_read16(dev, BMP280_REG_DIG_P1);
+    dev->comp.dig_P2 = (int16_t)bmp280_read16(dev, BMP280_REG_DIG_P2);
+    dev->comp.dig_P3 = (int16_t)bmp280_read16(dev, BMP280_REG_DIG_P3);
+    dev->comp.dig_P4 = (int16_t)bmp280_read16(dev, BMP280_REG_DIG_P4);
+    dev->comp.dig_P5 = (int16_t)bmp280_read16(dev, BMP280_REG_DIG_P5);
+    dev->comp.dig_P6 = (int16_t)bmp280_read16(dev, BMP280_REG_DIG_P6);
+    dev->comp.dig_P7 = (int16_t)bmp280_read16(dev, BMP280_REG_DIG_P7);
+    dev->comp.dig_P8 = (int16_t)bmp280_read16(dev, BMP280_REG_DIG_P8);
+    dev->comp.dig_P9 = (int16_t)bmp280_read16(dev, BMP280_REG_DIG_P9);
 }
 
 // datasheet recommends burst read for sensor data, since the data can change mid-transmission
 // we have to do 6 reads, starting at 0xF7 and ending at 0xFC
 // so we first write 0xF7, then read 6 bytes, 6x8 = 48 bits
 // both temperature and pressure are unsigned 20 bits, so 4 bits for each are xxxx
-esp_err_t bmp280_read_data(BMP280 *dev) {
-
+esp_err_t bmp280_read_data(struct BMP280 *dev) {
     uint8_t buf[6];
 
     // do 6 reads into buf_rx from BMP280_REG_PRESSURE
@@ -112,14 +111,13 @@ esp_err_t bmp280_read_data(BMP280 *dev) {
     return ESP_OK;
 }
 
-
 // from datasheet p.22, rev.1.1.
 // Returns temperature in DegC, resolution is 0.01 DegC. Output value of “5123” equals 51.23 DegC.
-int32_t bmp280_compensate_T(BMP280 *dev, int32_t adc_T) {
+int32_t bmp280_compensate_T(struct BMP280 *dev, int32_t adc_T) {
     int32_t var1, var2, t_fine;
 
-    var1 = ((((adc_T >> 3) - ((int32_t)dev->dig_T1 << 1))) * (int32_t)dev->dig_T2) >> 11;
-    var2 = (((((adc_T >> 4) - (int32_t)dev->dig_T1) * ((adc_T >> 4) - (int32_t)dev->dig_T1)) >> 12) * (int32_t)dev->dig_T3) >> 14;
+    var1 = ((((adc_T >> 3) - ((int32_t)dev->comp.dig_T1 << 1))) * (int32_t)dev->comp.dig_T2) >> 11;
+    var2 = (((((adc_T >> 4) - (int32_t)dev->comp.dig_T1) * ((adc_T >> 4) - (int32_t)dev->comp.dig_T1)) >> 12) * (int32_t)dev->comp.dig_T3) >> 14;
 
     t_fine = var1 + var2;
 
@@ -131,21 +129,21 @@ int32_t bmp280_compensate_T(BMP280 *dev, int32_t adc_T) {
 // from datasheet p.22, rev.1.1.
 // Returns pressure in Pa as unsigned 32 bit integer in Q24.8 format (24 integer bits and 8 fractional bits).
 // Output value of “24674867” represents 24674867/256 = 96386.2 Pa = 963.862 hPa
-uint32_t bmp280_compensate_P(BMP280 *dev, int32_t adc_P) {
+uint32_t bmp280_compensate_P(struct BMP280 *dev, int32_t adc_P) {
     int64_t var1, var2, p;
     var1 = ((int64_t)dev->t_fine) - 128000;
-    var2 = var1 * var1 * (int64_t)dev->dig_P6;
-    var2 = var2 + ((var1 * (int64_t)dev->dig_P5) << 17);
-    var2 = var2 + (((int64_t)dev->dig_P4) << 35);
-    var1 = ((var1 * var1 * (int64_t)dev->dig_P3) >> 8) + ((var1 * (int64_t)dev->dig_P2) << 12);
-    var1 = (((((int64_t)1) << 47) + var1)) * ((int64_t)dev->dig_P1) >> 33;
+    var2 = var1 * var1 * (int64_t)dev->comp.dig_P6;
+    var2 = var2 + ((var1 * (int64_t)dev->comp.dig_P5) << 17);
+    var2 = var2 + (((int64_t)dev->comp.dig_P4) << 35);
+    var1 = ((var1 * var1 * (int64_t)dev->comp.dig_P3) >> 8) + ((var1 * (int64_t)dev->comp.dig_P2) << 12);
+    var1 = (((((int64_t)1) << 47) + var1)) * ((int64_t)dev->comp.dig_P1) >> 33;
     if (var1 == 0) {
         return 0;  // avoid exception caused by division by zero
     }
     p    = 1048576 - adc_P;
     p    = (((p << 31) - var2) * 3125) / var1;
-    var1 = (((int64_t)dev->dig_P9) * (p >> 13) * (p >> 13)) >> 25;
-    var2 = (((int64_t)dev->dig_P8) * p) >> 19;
-    p    = ((p + var1 + var2) >> 8) + (((int64_t)dev->dig_P7) << 4);
+    var1 = (((int64_t)dev->comp.dig_P9) * (p >> 13) * (p >> 13)) >> 25;
+    var2 = (((int64_t)dev->comp.dig_P8) * p) >> 19;
+    p    = ((p + var1 + var2) >> 8) + (((int64_t)dev->comp.dig_P7) << 4);
     return (uint32_t)p;
 }

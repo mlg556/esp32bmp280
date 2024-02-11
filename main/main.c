@@ -22,8 +22,7 @@
 
 static const char* TAG = "BMP280";
 
-BMP280 bmp;
-static uint8_t s_led_state = 0;
+struct BMP280 bmp;
 
 void app_main(void) {
     i2c_config_t conf = {
@@ -39,14 +38,12 @@ void app_main(void) {
     i2c_param_config(i2c_num, &conf);
     i2c_driver_install(i2c_num, I2C_MODE_MASTER, 0, 0, 0);
 
-
     if (bmp280_init(&bmp, i2c_num))
         ESP_LOGI(TAG, "BMP280 Init SUCCESS!\n");
     else
         ESP_LOGE(TAG, "BMP280 Init ERR!!!\n");
 
     while (1) {
-
         bmp280_read_data(&bmp);
         ESP_LOGI(TAG, "%.02f C | %.02f ATM\n", bmp.temperature, bmp.pressure * BMP280_CONV_PA_ATM);
 
